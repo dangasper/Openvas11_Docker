@@ -217,7 +217,7 @@ if [ ! -f "/.armed" ]; then
 	chmod 666 /tmp/ospd.sock
 
 	echo "Starting Greenbone Vulnerability Manager..."
-	su -c "gvmd --listen=0.0.0.0 --port=9390 --max-ips-per-target=65536" gvm
+	su -c "gvmd --listen=0.0.0.0 --port=9390 --max-ips-per-target=65536 --osp-vt-update=/tmp/ospd.sock" gvm
 
 	until su -c "gvmd --get-users" gvm; do
 		sleep 1
@@ -229,6 +229,11 @@ if [ ! -f "/.armed" ]; then
 	
 		touch /openvas/.created_gvm_user
 	fi
+	echo "Updating openvas NVT database..."
+	openvas -u
+	
+	echo "Rebuilding GVM database..."
+	su -c "gvmd --rebuild"
 
 	echo "Finished setup..."
 	touch /.armed
@@ -300,7 +305,7 @@ fi
 
 if  [ ! $(pgrep gvmd) ]; then
 	echo "Starting Greenbone Vulnerability Manager..."
-	su -c "gvmd --listen=0.0.0.0 --port=9390 --max-ips-per-target=65536" gvm
+	su -c "gvmd --listen=0.0.0.0 --port=9390 --max-ips-per-target=65536 --osp-vt-update=/tmp/ospd.sock" gvm
 else
 	echo "GVMD already started...skipping"
 fi
